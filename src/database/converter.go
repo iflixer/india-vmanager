@@ -13,7 +13,7 @@ func (c *Converter) TableName() string {
 }
 
 func (c *Converter) Register(dbService *Service) (err error) {
-	err = dbService.DB.Where(Converter{Name: c.Name}).FirstOrCreate(c).Error
+	err = dbService.DB.Where("name=?", c.Name).FirstOrCreate(c).Error
 	return
 }
 
