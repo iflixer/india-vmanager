@@ -36,13 +36,14 @@ func MediaGet(dbService *Service, id int) (m *Media, err error) {
 }
 
 // MediaReadyToPlay should be called when we have converter at least 1 video for this media (ready to play)
-func MediaReadyToPlay(dbService *Service, mediaId int) (err error) {
+func MediaReadyToPlay(dbService *Service, mediaId int, lengthSeconds int) (err error) {
 	m := &Media{}
 	err = dbService.DB.Where("id=?", mediaId).Find(m).Error
 	if err != nil {
 		return
 	}
 	m.Status = 1
+	m.LengthSeconds = lengthSeconds
 	err = dbService.DB.Save(m).Error
 	return
 }

@@ -88,13 +88,13 @@ func (s *Service) VideoDone(w http.ResponseWriter, r *http.Request) {
 	log.Println("handler task report")
 	params := mux.Vars(r)
 	videoId := helper.StrToInt(params["videoId"])
-	converterId := helper.StrToInt(params["converterId"])
-	size := helper.StrToInt(params["size"])
+	totalSize := helper.StrToInt64(params["totalSize"])
+	lengthSeconds := helper.StrToInt(params["lengthSeconds"])
 
-	log.Printf("task report: videoId:%d converterId: %d size: %d \n", videoId, converterId, size)
+	log.Printf("task report: videoId:%d totalSize: %d lengthSeconds:%d \n", videoId, totalSize, lengthSeconds)
 
 	// update video
-	video, err := database.VideoDone(s.dbService, videoId, size)
+	video, err := database.VideoDone(s.dbService, videoId, totalSize)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
@@ -102,7 +102,7 @@ func (s *Service) VideoDone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update media
-	err = database.MediaReadyToPlay(s.dbService, video.ID)
+	err = database.MediaReadyToPlay(s.dbService, video.ID, lengthSeconds)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)

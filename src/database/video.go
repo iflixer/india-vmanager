@@ -9,7 +9,7 @@ type Video struct {
 	MediaId     int
 	FormatId    int
 	Status      int
-	FileSize    int
+	FileSize    int64
 	Progress    int
 	ConverterId int
 }
@@ -84,7 +84,7 @@ func VideoUpdateProgress(dbService *Service, videoId, progress int) (err error) 
 }
 
 // VideoDone should be called when converter finished the work
-func VideoDone(dbService *Service, videoId, fileSize int) (v *Video, err error) {
+func VideoDone(dbService *Service, videoId int, fileSize int64) (v *Video, err error) {
 	err = dbService.DB.Where("id=?", videoId).Find(v).Error
 	if err != nil {
 		return
