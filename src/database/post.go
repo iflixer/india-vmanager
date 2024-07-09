@@ -19,6 +19,9 @@ func PostGet(dbService *Service, id int) (m *Post, err error) {
 
 // PostAddLang adds new lang to lang field for post table
 func PostAddLang(dbService *Service, postId, langId int) (err error) {
+	if langId == 0 {
+		return
+	}
 	p := &Post{}
 
 	err = dbService.DB.Where("id=?", postId).Find(p).Error
