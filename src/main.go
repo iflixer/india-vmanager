@@ -16,6 +16,7 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("START")
 
 	log.Println("runtime.GOMAXPROCS:", runtime.GOMAXPROCS(0))

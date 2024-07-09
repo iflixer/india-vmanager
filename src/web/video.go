@@ -86,31 +86,38 @@ func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 // VideoDone for converters to report tasks
 func (s *Service) VideoDone(w http.ResponseWriter, r *http.Request) {
 	log.Println("handler task report")
-	params := mux.Vars(r)
-	videoId := helper.StrToInt(params["videoId"])
-	totalSize := helper.StrToInt64(params["totalSize"])
-	lengthSeconds := helper.StrToInt(params["lengthSeconds"])
+	videoId := helper.StrToInt(r.URL.Query().Get("videoId"))
+	totalSize := helper.StrToInt64(r.URL.Query().Get("totalSize"))
+	lengthSeconds := helper.StrToInt(r.URL.Query().Get("lengthSeconds"))
 
 	log.Printf("task report: videoId:%d totalSize: %d lengthSeconds:%d \n", videoId, totalSize, lengthSeconds)
 
 	// update video
 	video, err := database.VideoDone(s.dbService, videoId, totalSize)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		// w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
 
 	// update media
-	err = database.MediaReadyToPlay(s.dbService, video.ID, lengthSeconds)
+	err = database.MediaReadyToPlay(s.dbService, video.MediaId, lengthSeconds)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
 
 	// TODO: update lang in post
-
+	media, err := database.MediaGet(s.dbService, video.MediaId)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	err = database.PostAddLang(s.dbService, media.PostID, media.LangId)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	/*if task.Status == "error" {
 		s.telegramService.Send(telegram.ChanVideo, fmt.Sprintf("Error converting video %s", task.SourcePath))
 	}

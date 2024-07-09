@@ -2,6 +2,8 @@ package database
 
 import (
 	"errors"
+	"fmt"
+	"log"
 )
 
 type Video struct {
@@ -23,7 +25,7 @@ func VideoFindJobForConverter(dbService *Service, converterId int) (media *Media
 
 	// get all media with status=0 (convert not done)
 	medias, err := MediaSearchReadyToConvert(dbService)
-	if err != nil {
+	if err != nil || len(medias) == 0 {
 		return
 	}
 
@@ -36,7 +38,6 @@ func VideoFindJobForConverter(dbService *Service, converterId int) (media *Media
 	// find media which has no video in some format
 	media, format = searchMedia(dbService, medias, formats)
 	if media == nil || format == nil {
-		err = errors.New("media or format is nil")
 		return
 	}
 
@@ -85,8 +86,13 @@ func VideoUpdateProgress(dbService *Service, videoId, progress int) (err error) 
 
 // VideoDone should be called when converter finished the work
 func VideoDone(dbService *Service, videoId int, fileSize int64) (v *Video, err error) {
+	v = &Video{}
 	err = dbService.DB.Where("id=?", videoId).Find(v).Error
 	if err != nil {
+		return
+	}
+	if v.ID == 0 {
+		err = errors.New(fmt.Sprintf("Video not found with id %d", videoId))
 		return
 	}
 
@@ -96,6 +102,7 @@ func VideoDone(dbService *Service, videoId int, fileSize int64) (v *Video, err e
 
 	err = dbService.DB.Save(v).Error
 	if err != nil {
+		log.Println(err)
 		return
 	}
 

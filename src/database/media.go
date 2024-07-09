@@ -6,7 +6,7 @@ type Media struct {
 	Orig          string
 	LengthSeconds int
 	Status        int
-	LangId        string
+	LangId        int
 }
 
 func (s *Media) TableName() string {
@@ -25,24 +25,25 @@ func (s *Media) TableName() string {
 
 // MediaGetReadyToConvert returns Media list
 func MediaSearchReadyToConvert(dbService *Service) (m []*Media, err error) {
-	err = dbService.DB.Order("id desc").Where("status=0 AND orig!='' AND isnull(deleted_at)").Find(&m).Error
+	err = dbService.DB.Order("id desc").Where("status=1 AND orig!='' AND isnull(deleted_at)").Find(&m).Error
 	return
 }
 
 // MediaGet returns Media by ID
-func MediaGet(dbService *Service, id int) (m *Media, err error) {
-	err = dbService.DB.Where("id=? AND isnull(deleted_at)", id).Find(m).Error
+func MediaGet(dbService *Service, mediaId int) (m *Media, err error) {
+	m = &Media{}
+	err = dbService.DB.Where("id=? AND isnull(deleted_at)", mediaId).Find(m).Error
 	return
 }
 
 // MediaReadyToPlay should be called when we have converter at least 1 video for this media (ready to play)
 func MediaReadyToPlay(dbService *Service, mediaId int, lengthSeconds int) (err error) {
 	m := &Media{}
-	err = dbService.DB.Where("id=?", mediaId).Find(m).Error
+	err = dbService.DB.Where("id=?", mediaId).First(m).Error
 	if err != nil {
 		return
 	}
-	m.Status = 1
+	m.Status = 2
 	m.LengthSeconds = lengthSeconds
 	err = dbService.DB.Save(m).Error
 	return
