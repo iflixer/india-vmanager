@@ -25,7 +25,7 @@ func (s *Media) TableName() string {
 
 // MediaGetReadyToConvert returns Media list
 func MediaSearchReadyToConvert(dbService *Service) (m []*Media, err error) {
-	err = dbService.DB.Order("id desc").Where("status=1 AND orig!='' AND isnull(deleted_at)").Find(&m).Error
+	err = dbService.DB.Order("id desc").Where("orig!='' AND isnull(deleted_at)").Find(&m).Error
 	return
 }
 
