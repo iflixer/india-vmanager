@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"videomanager/database"
@@ -10,10 +9,18 @@ import (
 )
 
 type Job struct {
-	Video  *database.Video
-	Media  *database.Media
-	Format *database.Format
-	Error  string
+	ConverterId int
+	Video       *database.Video
+	Media       *database.Media
+	Format      *database.Format
+	Error       string
+}
+
+type ProgressFormat struct {
+	Pass   int
+	Size   int
+	Speed  string
+	TimeMs int
 }
 
 // VideoGetJob creates the video and returns it to converter
@@ -45,9 +52,10 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	job := Job{
-		Video:  video,
-		Media:  media,
-		Format: format,
+		ConverterId: converter.ID,
+		Video:       video,
+		Media:       media,
+		Format:      format,
 	}
 	res, _ := json.Marshal(job)
 
@@ -61,15 +69,17 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// VideoProgress for converters to report tasks progreee
+// VideoProgress for converters to report tasks progress
 func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 	// log.Println("handler progress")
-	params := mux.Vars(r)
-	pass := helper.StrToInt(params["pass"])
-	videoId := helper.StrToInt(params["videoId"])
-	size := helper.StrToInt(params["size"])
-	speed := params["speed"]
-	timeMs := helper.StrToInt(params["timeMs"])
+	pass := helper.StrToInt(r.URL.Query().Get("pass"))
+	videoId := helper.StrToInt(r.URL.Query().Get("videoId"))
+	converterId := helper.StrToInt(r.URL.Query().Get("converterId"))
+	mediaId := helper.StrToInt(r.URL.Query().Get("mediaId"))
+	postId := helper.StrToInt(r.URL.Query().Get("postId"))
+	size := helper.StrToInt(r.URL.Query().Get("size"))
+	speed := r.URL.Query().Get("speed")
+	timeMs := helper.StrToInt(r.URL.Query().Get("timeMs"))
 
 	/*taskProgress := &TaskProgress{
 		Pass:    pass,
@@ -80,7 +90,15 @@ func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 		TimeMs:  r.URL.Query().Get("timeMs"),
 	}*/
 
-	log.Printf("progress video %d: pass %d size: %d speed: %s timeMs: %d \n", videoId, pass, size, speed, timeMs)
+	report := &ProgressFormat{
+		Pass:   pass,
+		Size:   size,
+		Speed:  speed,
+		TimeMs: timeMs,
+	}
+	msg, _ := json.Marshal(report)
+	log.Println("[VideoProgress]", msg)
+	database.VideoLogAdd(s.dbService, 1, converterId, postId, mediaId, videoId, string(msg))
 
 	// save progress to DB
 
