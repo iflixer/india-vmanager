@@ -1,6 +1,8 @@
 package database
 
 import (
+	"context"
+	"gorm.io/gorm/clause"
 	"log"
 )
 
@@ -27,7 +29,11 @@ func VideoLogAdd(dbService *Service, status, converterId, postId, mediaId, video
 		VideoId:     videoId,
 		Message:     message,
 	}
-	err := dbService.DB.Save(m).Error
+	ctx := context.Background()
+	err := dbService.DB.WithContext(ctx).Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(m).Error
+	// err := dbService.DB.Save(m).Error
 	if err != nil {
 		log.Println(err)
 	}
