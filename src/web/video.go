@@ -22,7 +22,7 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 	cpuQty := helper.StrToInt(r.URL.Query().Get("cpuQty"))
 	version := r.URL.Query().Get("version")
 
-	converter := database.Converter{Name: nodeName, CpuQty: cpuQty, Version: version}
+	converter := &database.Converter{Name: nodeName, CpuQty: cpuQty, Version: version}
 
 	converter.Register(s.dbService)
 
@@ -50,6 +50,13 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 		Format: format,
 	}
 	res, _ := json.Marshal(job)
+
+	if converter != nil && media != nil && video != nil {
+		database.VideoLogAdd(s.dbService, 0, converter.ID, media.PostID, media.ID, video.ID, "task taken")
+	} else {
+	}
+	log.Printf("no one task found for converter %s :(", converter.Name)
+
 	w.Write(res)
 
 }
@@ -123,5 +130,8 @@ func (s *Service) VideoDone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	*/
+
+	database.VideoLogAdd(s.dbService, 2, video.ConverterId, media.PostID, media.ID, video.ID, "task done")
+
 	_, _ = w.Write([]byte("OK"))
 }

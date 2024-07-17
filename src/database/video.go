@@ -36,7 +36,7 @@ func VideoFindJobForConverter(dbService *Service, converterId int) (media *Media
 	}
 
 	// find media which has no video in some format
-	media, format = searchMedia(dbService, medias, formats)
+	media, format = searchVideo(dbService, medias, formats)
 	if media == nil || format == nil {
 		return
 	}
@@ -51,7 +51,7 @@ func VideoFindJobForConverter(dbService *Service, converterId int) (media *Media
 	return
 }
 
-func searchMedia(dbService *Service, medias []*Media, formats []*Format) (media *Media, format *Format) {
+func searchVideo(dbService *Service, medias []*Media, formats []*Format) (media *Media, format *Format) {
 	video := &Video{}
 	var Found bool
 	for _, m := range medias {
