@@ -20,7 +20,7 @@ func (f *Format) TableName() string {
 }
 
 func (f *Format) Load(dbService *Service) (err error) {
-	err = dbService.DB.Find(f).Error
+	err = dbService.DB.Limit(1).Find(f).Error
 	return
 }
 

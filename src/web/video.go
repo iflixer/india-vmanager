@@ -97,7 +97,7 @@ func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 		TimeMs: timeMs,
 	}
 	msg, _ := json.Marshal(report)
-	log.Printf("[VideoProgress] %s", msg)
+	//log.Printf("[VideoProgress] %s", msg)
 	database.VideoLogAdd(s.dbService, 1, converterId, postId, mediaId, videoId, string(msg))
 
 	// save progress to DB

@@ -18,7 +18,7 @@ func (c *Converter) Register(dbService *Service) (err error) {
 }
 
 func (c *Converter) Load(dbService *Service) (err error) {
-	err = dbService.DB.Where(`id=?`, c.ID).Find(c).Error
+	err = dbService.DB.Where(`id=?`, c.ID).Limit(1).Find(c).Error
 	return
 }
 
