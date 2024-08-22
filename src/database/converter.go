@@ -6,6 +6,9 @@ type Converter struct {
 	CpuQty  int
 	Active  bool
 	Version string
+	PostID  int
+	MediaID int
+	VideoID int
 }
 
 func (c *Converter) TableName() string {

@@ -68,6 +68,11 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 	res, _ := json.Marshal(job)
 
 	if media != nil && video != nil {
+		converter.PostID = media.PostID
+		converter.MediaID = media.ID
+		converter.VideoID = video.ID
+		converter.Save(s.dbService)
+
 		database.VideoLogAdd(s.dbService, 0, converter.ID, media.PostID, media.ID, video.ID, "task taken")
 		log.Printf("task found for converter (%d)%s: postID: %d, mediaID:%d, videoID: %d", converter.ID, converter.Name, media.PostID, media.ID, video.ID)
 		w.Write(res)
