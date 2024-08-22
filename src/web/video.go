@@ -35,6 +35,8 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 
 	converter.Load(s.dbService)
 
+	converter.UpdateVersion(s.dbService)
+
 	if !converter.Active {
 		log.Printf("blocked converter %s", converter.Name)
 
