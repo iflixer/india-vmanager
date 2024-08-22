@@ -36,7 +36,13 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 	converter.Load(s.dbService)
 
 	if !converter.Active {
-		w.Write([]byte("you are blocked"))
+		log.Printf("blocked converter %s", converter.Name)
+
+		job := Job{
+			Error: "you are blocked",
+		}
+		res, _ := json.Marshal(job)
+		w.Write(res)
 		return
 	}
 
@@ -59,11 +65,14 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 	}
 	res, _ := json.Marshal(job)
 
-	if converter != nil && media != nil && video != nil {
+	if media != nil && video != nil {
 		database.VideoLogAdd(s.dbService, 0, converter.ID, media.PostID, media.ID, video.ID, "task taken")
-	} else {
+		log.Printf("task found for converter (%d)%s: postID: %d, mediaID:%d, videoID: %d", converter.ID, converter.Name, media.PostID, media.ID, video.ID)
+		w.Write(res)
+		return
 	}
-	log.Printf("no one task found for converter %s :(", converter.Name)
+
+	log.Printf("no task found for converter %s :(", converter.Name)
 
 	w.Write(res)
 
