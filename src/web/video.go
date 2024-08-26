@@ -116,7 +116,13 @@ func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 	//log.Printf("[VideoProgress] %s", msg)
 	database.VideoLogAdd(s.dbService, 1, converterId, postId, mediaId, videoId, string(msg))
 
-	// save progress to DB
+	// update video
+	err := database.VideoUpdateProgress(s.dbService, videoId, 1)
+	if err != nil {
+		// w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
 
 	/*reqDump, _ := httputil.DumpRequest(r, true)
 	// body, _ := io.ReadAll(r.Body)
