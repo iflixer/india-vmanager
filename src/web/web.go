@@ -1,10 +1,11 @@
 package web
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"sync"
 	"videomanager/database"
 	"videomanager/telegram"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type metrics struct {
@@ -23,7 +24,7 @@ type TaskProgress struct {
 
 // Service stores all the Cdn servers synced with DB
 type Service struct {
-	mu              sync.RWMutex
+	//mu              sync.RWMutex
 	metrics         *metrics
 	dbService       *database.Service
 	telegramService *telegram.Service

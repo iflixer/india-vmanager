@@ -76,10 +76,12 @@ func searchVideo(dbService *Service, medias []*Media, formats []*Format) (media 
 
 // VideoUpdateProgress should be called when converter is working
 func VideoUpdateProgress(dbService *Service, videoId, progress int) (err error) {
-	v := &Video{
-		ID:       videoId,
-		Progress: progress,
+	v := &Video{}
+	err = dbService.DB.Where("id=?", videoId).Find(v).Error
+	if err != nil {
+		return
 	}
+	v.Progress = 1
 	err = dbService.DB.Save(v).Error
 	return
 }

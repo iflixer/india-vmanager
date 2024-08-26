@@ -117,7 +117,7 @@ func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 	database.VideoLogAdd(s.dbService, 1, converterId, postId, mediaId, videoId, string(msg))
 
 	// update video
-	err := database.VideoUpdateProgress(s.dbService, videoId, 1)
+	err := database.VideoUpdateProgress(s.dbService, videoId, timeMs)
 	if err != nil {
 		// w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
