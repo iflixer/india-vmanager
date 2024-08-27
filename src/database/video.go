@@ -80,8 +80,8 @@ func VideoUpdateProgress(dbService *Service, videoId, progress int) (err error) 
 	if err != nil {
 		return
 	}
-	v.Progress = 1
-	log.Printf("update videoId %d, progress:%d", videoId, progress)
+	v.Progress = progress / 1000 / 1000
+	//log.Printf("update videoId %d, progress:%d", videoId, progress)
 	err = dbService.DB.Save(v).Error
 	return
 }
@@ -100,7 +100,7 @@ func VideoDone(dbService *Service, videoId int, fileSize int64) (v *Video, err e
 
 	v.FileSize = fileSize
 	v.Status = 1
-	v.Progress = 100
+	//v.Progress = 100
 
 	err = dbService.DB.Save(v).Error
 	if err != nil {
