@@ -1,7 +1,6 @@
 package database
 
 import (
-	"errors"
 	"fmt"
 	"log"
 )
@@ -82,6 +81,7 @@ func VideoUpdateProgress(dbService *Service, videoId, progress int) (err error) 
 		return
 	}
 	v.Progress = 1
+	log.Printf("update videoId %d, progress:%d", videoId, progress)
 	err = dbService.DB.Save(v).Error
 	return
 }
@@ -94,7 +94,7 @@ func VideoDone(dbService *Service, videoId int, fileSize int64) (v *Video, err e
 		return
 	}
 	if v.ID == 0 {
-		err = errors.New(fmt.Sprintf("Video not found with id %d", videoId))
+		err = fmt.Errorf("Video not found with id %d", videoId)
 		return
 	}
 

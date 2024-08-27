@@ -2,8 +2,9 @@ package database
 
 import (
 	"context"
-	"gorm.io/gorm/clause"
 	"log"
+
+	"gorm.io/gorm/clause"
 )
 
 type VideoLog struct {
@@ -37,5 +38,4 @@ func VideoLogAdd(dbService *Service, status, converterId, postId, mediaId, video
 	if err != nil {
 		log.Println(err)
 	}
-	return
 }
