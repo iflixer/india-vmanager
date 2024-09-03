@@ -167,6 +167,7 @@ func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
 		//lengthSeconds := helper.StrToInt(r.URL.Query().Get("lengthSeconds"))
 
 		video.FileSize = progress
+		video.Progress = 0
 		video.Save(s.dbService)
 
 		media.Status = 2
