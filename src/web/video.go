@@ -153,6 +153,7 @@ func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
 	if status == 1 {
 		// dirty hack - we use progress to send duration
 		media.Duration = progress
+		video.Duration = progress
 		progress = 0
 		media.Save(s.dbService)
 	}

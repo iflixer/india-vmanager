@@ -12,6 +12,7 @@ type Video struct {
 	Status      int
 	FileSize    int64
 	Progress    int
+	Duration    int
 	ConverterId int
 }
 
