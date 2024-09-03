@@ -139,7 +139,7 @@ func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
 	//log.Println("VideoUpdate")
 	videoId := helper.StrToInt(r.URL.Query().Get("videoId"))
-	progress := helper.StrToInt(r.URL.Query().Get("progress"))
+	progress := helper.StrToInt64(r.URL.Query().Get("progress"))
 	status := helper.StrToInt(r.URL.Query().Get("status"))
 
 	log.Printf("[VideoUpdate] videoId:%d status:%d \n", status, videoId)
@@ -152,19 +152,22 @@ func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
 
 	if status == 1 {
 		// dirty hack - we use progress to send duration
-		media.Duration = progress
-		video.Duration = progress
+		media.Duration = int(progress)
+		video.Duration = int(progress)
 		progress = 0
 		media.Save(s.dbService)
 	}
 
 	video.Status = status
-	video.Progress = progress
+	video.Progress = int(progress)
 	video.Save(s.dbService)
 
 	if status == 5 {
 		//totalSize := helper.StrToInt64(r.URL.Query().Get("totalSize"))
 		//lengthSeconds := helper.StrToInt(r.URL.Query().Get("lengthSeconds"))
+
+		video.FileSize = progress
+		video.Save(s.dbService)
 
 		media.Status = 2
 		media.Save(s.dbService)
