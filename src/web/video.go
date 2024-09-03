@@ -150,7 +150,7 @@ func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
 	media := &database.Media{}
 	media.Load(s.dbService, video.MediaId)
 
-	if status == 1 {
+	if status == 2 { // probe
 		// dirty hack - we use progress to send duration
 		media.Duration = int(progress)
 		video.Duration = int(progress)
