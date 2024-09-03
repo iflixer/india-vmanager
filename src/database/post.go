@@ -11,6 +11,14 @@ func (f *Post) TableName() string {
 	return "post"
 }
 
+func (v *Post) Load(dbService *Service, id int) (err error) {
+	return dbService.DB.Where("id=?", id).Find(v).Error
+}
+
+func (v *Post) Save(dbService *Service) (err error) {
+	return dbService.DB.Save(v).Error
+}
+
 func PostGet(dbService *Service, id int) (m *Post, err error) {
 	m = &Post{}
 	err = dbService.DB.Where("id=? AND isnull(deleted_at)", id).Find(m).Error

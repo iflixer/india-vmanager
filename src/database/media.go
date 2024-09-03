@@ -1,16 +1,24 @@
 package database
 
 type Media struct {
-	ID            int
-	PostID        int
-	Orig          string
-	LengthSeconds int
-	Status        int
-	LangId        int
+	ID       int
+	PostID   int
+	Orig     string
+	Duration int
+	Status   int
+	LangId   int
 }
 
 func (s *Media) TableName() string {
 	return "media"
+}
+
+func (v *Media) Load(dbService *Service, id int) (err error) {
+	return dbService.DB.Where("id=?", id).Find(v).Error
+}
+
+func (v *Media) Save(dbService *Service) (err error) {
+	return dbService.DB.Save(v).Error
 }
 
 /*func (s *Media) Save(dbService *Service) (err error) {
@@ -26,25 +34,5 @@ func (s *Media) TableName() string {
 // MediaGetReadyToConvert returns Media list
 func MediaSearchReadyToConvert(dbService *Service) (m []*Media, err error) {
 	err = dbService.DB.Order("id desc").Where("orig!='' AND isnull(deleted_at)").Find(&m).Error
-	return
-}
-
-// MediaGet returns Media by ID
-func MediaGet(dbService *Service, mediaId int) (m *Media, err error) {
-	m = &Media{}
-	err = dbService.DB.Where("id=? AND isnull(deleted_at)", mediaId).Find(m).Error
-	return
-}
-
-// MediaReadyToPlay should be called when we have converter at least 1 video for this media (ready to play)
-func MediaReadyToPlay(dbService *Service, mediaId int, lengthSeconds int) (err error) {
-	m := &Media{}
-	err = dbService.DB.Where("id=?", mediaId).First(m).Error
-	if err != nil {
-		return
-	}
-	m.Status = 2
-	m.LengthSeconds = lengthSeconds
-	err = dbService.DB.Save(m).Error
 	return
 }

@@ -28,14 +28,22 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 	nodeName := r.URL.Query().Get("nodeName")
 	cpuQty := helper.StrToInt(r.URL.Query().Get("cpuQty"))
 	version := r.URL.Query().Get("version")
+	var err error
 
-	converter := &database.Converter{Name: nodeName, CpuQty: cpuQty, Version: version}
+	converter := &database.Converter{}
 
-	converter.Register(s.dbService)
+	err = converter.Register(s.dbService, nodeName)
+	if err != nil {
+		log.Println(err)
+	}
 
-	converter.Load(s.dbService)
+	converter.CpuQty = cpuQty
+	converter.Version = version
 
-	converter.UpdateVersion(s.dbService)
+	err = converter.Save(s.dbService)
+	if err != nil {
+		log.Println(err)
+	}
 
 	if !converter.Active {
 		log.Printf("blocked converter %s", converter.Name)
@@ -73,7 +81,6 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 		converter.VideoID = video.ID
 		converter.Save(s.dbService)
 
-		database.VideoLogAdd(s.dbService, 0, converter.ID, media.PostID, media.ID, video.ID, "task taken")
 		log.Printf("task found for converter (%d)%s: postID: %d, mediaID:%d, videoID: %d", converter.ID, converter.Name, media.PostID, media.ID, video.ID)
 		w.Write(res)
 		return
@@ -88,14 +95,14 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 // VideoProgress for converters to report tasks progress
 func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 	// log.Println("handler progress")
-	pass := helper.StrToInt(r.URL.Query().Get("pass"))
+	//pass := helper.StrToInt(r.URL.Query().Get("pass"))
 	videoId := helper.StrToInt(r.URL.Query().Get("videoId"))
-	converterId := helper.StrToInt(r.URL.Query().Get("converterId"))
-	mediaId := helper.StrToInt(r.URL.Query().Get("mediaId"))
-	postId := helper.StrToInt(r.URL.Query().Get("postId"))
-	size := helper.StrToInt(r.URL.Query().Get("size"))
-	speed := r.URL.Query().Get("speed")
-	timeMs := helper.StrToInt(r.URL.Query().Get("timeMs"))
+	//converterId := helper.StrToInt(r.URL.Query().Get("converterId"))
+	//mediaId := helper.StrToInt(r.URL.Query().Get("mediaId"))
+	//postId := helper.StrToInt(r.URL.Query().Get("postId"))
+	//size := helper.StrToInt(r.URL.Query().Get("size"))
+	//speed := r.URL.Query().Get("speed")
+	seconds := helper.StrToInt(r.URL.Query().Get("seconds"))
 
 	/*taskProgress := &TaskProgress{
 		Pass:    pass,
@@ -106,18 +113,16 @@ func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 		TimeMs:  r.URL.Query().Get("timeMs"),
 	}*/
 
-	report := &ProgressFormat{
-		Pass:   pass,
-		Size:   size,
-		Speed:  speed,
-		TimeMs: timeMs,
-	}
-	msg, _ := json.Marshal(report)
-	//log.Printf("[VideoProgress] %s", msg)
-	database.VideoLogAdd(s.dbService, 1, converterId, postId, mediaId, videoId, string(msg))
+	// report := &ProgressFormat{
+	// 	Pass:   pass,
+	// 	Size:   size,
+	// 	Speed:  speed,
+	// 	TimeMs: timeMs,
+	// }
+	//msg, _ := json.Marshal(report)
 
 	// update video
-	err := database.VideoUpdateProgress(s.dbService, videoId, timeMs)
+	err := database.VideoUpdateProgress(s.dbService, videoId, seconds)
 	if err != nil {
 		// w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
@@ -130,48 +135,53 @@ func (s *Service) VideoProgress(_ http.ResponseWriter, r *http.Request) {
 	log.Println("\n-----XXXXXXX")*/
 }
 
-// VideoDone for converters to report tasks
-func (s *Service) VideoDone(w http.ResponseWriter, r *http.Request) {
-	log.Println("handler task report")
+// VideoUpdate for converters to report tasks
+func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
+	//log.Println("VideoUpdate")
 	videoId := helper.StrToInt(r.URL.Query().Get("videoId"))
-	totalSize := helper.StrToInt64(r.URL.Query().Get("totalSize"))
-	lengthSeconds := helper.StrToInt(r.URL.Query().Get("lengthSeconds"))
+	progress := helper.StrToInt(r.URL.Query().Get("progress"))
+	status := helper.StrToInt(r.URL.Query().Get("status"))
 
-	log.Printf("task report: videoId:%d totalSize: %d lengthSeconds:%d \n", videoId, totalSize, lengthSeconds)
+	log.Printf("[VideoUpdate] videoId:%d status:%d \n", status, videoId)
 
-	// update video
-	video, err := database.VideoDone(s.dbService, videoId, totalSize)
-	if err != nil {
-		// w.WriteHeader(http.StatusInternalServerError)
-		log.Println(err)
-		return
+	video := &database.Video{}
+	video.Load(s.dbService, videoId)
+
+	media := &database.Media{}
+	media.Load(s.dbService, video.MediaId)
+
+	if status == 1 {
+		// dirty hack - we use progress to send duration
+		media.Duration = progress
+		progress = 0
+		media.Save(s.dbService)
 	}
 
-	// update media
-	err = database.MediaReadyToPlay(s.dbService, video.MediaId, lengthSeconds)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	video.Status = status
+	video.Progress = progress
+	video.Save(s.dbService)
 
-	// TODO: update lang in post
-	media, err := database.MediaGet(s.dbService, video.MediaId)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	err = database.PostAddLang(s.dbService, media.PostID, media.LangId)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	/*if task.Status == "error" {
-		s.telegramService.Send(telegram.ChanVideo, fmt.Sprintf("Error converting video %s", task.SourcePath))
-	}
+	if status == 5 {
+		//totalSize := helper.StrToInt64(r.URL.Query().Get("totalSize"))
+		//lengthSeconds := helper.StrToInt(r.URL.Query().Get("lengthSeconds"))
 
-	*/
+		media.Status = 2
+		media.Save(s.dbService)
 
-	database.VideoLogAdd(s.dbService, 2, video.ConverterId, media.PostID, media.ID, video.ID, "task done")
+		// TODO: update lang in post
+
+		err := database.PostAddLang(s.dbService, media.PostID, media.LangId)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		/*if task.Status == "error" {
+			s.telegramService.Send(telegram.ChanVideo, fmt.Sprintf("Error converting video %s", task.SourcePath))
+		}
+
+		*/
+
+	}
 
 	_, _ = w.Write([]byte("OK"))
 }

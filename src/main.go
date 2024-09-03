@@ -2,9 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
-	"github.com/prometheus/client_golang/prometheus"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +10,10 @@ import (
 	"videomanager/database"
 	"videomanager/telegram"
 	"videomanager/web"
+
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 func main() {
@@ -69,9 +70,9 @@ func main() {
 	rtr := mux.NewRouter()
 	rtr.HandleFunc("/alive", getAlive)
 	rtr.HandleFunc("/job/get", webService.VideoGetJob).Methods("POST")
-	rtr.HandleFunc("/job/done", webService.VideoDone).Methods("POST")
-	rtr.HandleFunc("/job/progress/save", webService.VideoProgress).Methods("POST")
-	rtr.HandleFunc("/job/progress/get", webService.VideoProgressGet).Methods("GET")
+	rtr.HandleFunc("/job/update", webService.VideoUpdate).Methods("POST")
+	//rtr.HandleFunc("/job/progress/save", webService.VideoProgress).Methods("POST")
+	//rtr.HandleFunc("/job/progress/get", webService.VideoProgressGet).Methods("GET")
 	// rtr.HandleFunc("/converter_alive", webService.ConverterAlive).Methods("POST")
 
 	http.Handle("/", rtr)

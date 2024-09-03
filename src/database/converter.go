@@ -15,22 +15,13 @@ func (c *Converter) TableName() string {
 	return "video_converter"
 }
 
-func (c *Converter) Register(dbService *Service) (err error) {
-	err = dbService.DB.Where("name=?", c.Name).FirstOrCreate(c).Error
-	return
-}
-
-func (c *Converter) Load(dbService *Service) (err error) {
-	err = dbService.DB.Where(`id=?`, c.ID).Limit(1).Find(c).Error
+func (c *Converter) Register(dbService *Service, name string) (err error) {
+	c.Name = name
+	err = dbService.DB.Where("name=?", name).FirstOrCreate(c).Error
 	return
 }
 
 func (c *Converter) Save(dbService *Service) (err error) {
-	err = dbService.DB.Save(c).Error
-	return
-}
-
-func (c *Converter) UpdateVersion(dbService *Service) (err error) {
 	err = dbService.DB.Save(c).Error
 	return
 }

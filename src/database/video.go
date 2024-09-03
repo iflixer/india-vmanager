@@ -19,6 +19,14 @@ func (v *Video) TableName() string {
 	return "media_video"
 }
 
+func (v *Video) Load(dbService *Service, id int) (err error) {
+	return dbService.DB.Where("id=?", id).Find(v).Error
+}
+
+func (v *Video) Save(dbService *Service) (err error) {
+	return dbService.DB.Save(v).Error
+}
+
 // VideoFindJobForConverter searches the media without video and returns newly created video
 func VideoFindJobForConverter(dbService *Service, converterId int) (media *Media, video *Video, format *Format, err error) {
 
@@ -99,7 +107,7 @@ func VideoDone(dbService *Service, videoId int, fileSize int64) (v *Video, err e
 	}
 
 	v.FileSize = fileSize
-	v.Status = 1
+	v.Status = 5
 	//v.Progress = 100
 
 	err = dbService.DB.Save(v).Error
