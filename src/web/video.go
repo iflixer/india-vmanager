@@ -141,6 +141,7 @@ func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
 	videoId := helper.StrToInt(r.URL.Query().Get("videoId"))
 	progress := helper.StrToInt64(r.URL.Query().Get("progress"))
 	status := helper.StrToInt(r.URL.Query().Get("status"))
+	msg := r.URL.Query().Get("msg")
 
 	log.Printf("[VideoUpdate] videoId:%d status:%d \n", status, videoId)
 
@@ -149,6 +150,10 @@ func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
 
 	media := &database.Media{}
 	media.Load(s.dbService, video.MediaId)
+
+	//if status == -1 { // error
+	//TODO: send message to telegram
+	//}
 
 	if status == 2 { // probe
 		// dirty hack - we use progress to send duration
@@ -159,6 +164,7 @@ func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	video.Status = status
+	video.Msg = msg
 	video.Progress = int(progress)
 	video.Save(s.dbService)
 

@@ -14,6 +14,7 @@ type Video struct {
 	Progress    int
 	Duration    int
 	ConverterId int
+	Msg         string
 }
 
 func (v *Video) TableName() string {
