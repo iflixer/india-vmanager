@@ -31,6 +31,8 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 	version := r.URL.Query().Get("version")
 	var err error
 
+	log.Printf("get task for %s (%s)", nodeName, version)
+
 	converter := &database.Converter{}
 
 	err = converter.Register(s.dbService, nodeName)
