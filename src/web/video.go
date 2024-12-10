@@ -36,6 +36,12 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 	err = converter.Register(s.dbService, nodeName)
 	if err != nil {
 		log.Println(err)
+		job := Job{
+			Error: "register error:" + err.Error(),
+		}
+		res, _ := json.Marshal(job)
+		w.Write(res)
+		return
 	}
 
 	converter.CpuQty = cpuQty
@@ -44,11 +50,16 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 	err = converter.Save(s.dbService)
 	if err != nil {
 		log.Println(err)
+		job := Job{
+			Error: "converter save error:" + err.Error(),
+		}
+		res, _ := json.Marshal(job)
+		w.Write(res)
+		return
 	}
 
 	if !converter.Active {
 		log.Printf("blocked converter %s", converter.Name)
-
 		job := Job{
 			Error: "you are blocked",
 		}
@@ -56,6 +67,7 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 		w.Write(res)
 		return
 	}
+
 	start := time.Now()
 	media, video, format, err := database.VideoFindJobForConverter(s.dbService, converter.ID)
 	log.Println("VideoFindJobForConverter took:", time.Since(start))
