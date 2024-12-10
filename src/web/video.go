@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 	"videomanager/database"
 	"videomanager/helper"
 )
@@ -55,8 +56,10 @@ func (s *Service) VideoGetJob(w http.ResponseWriter, r *http.Request) {
 		w.Write(res)
 		return
 	}
-
+	start := time.Now()
 	media, video, format, err := database.VideoFindJobForConverter(s.dbService, converter.ID)
+	log.Println("VideoFindJobForConverter took:", time.Since(start))
+
 	if err != nil {
 		log.Println(err)
 		job := Job{
