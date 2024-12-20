@@ -35,6 +35,6 @@ func (v *Media) Save(dbService *Service) (err error) {
 func MediaSearchReadyToConvert(dbService *Service) (m []*Media, err error) {
 	// disable telegram videos
 	//err = dbService.DB.Order("id desc").Where("orig!='' AND isnull(deleted_at)").Find(&m).Error
-	err = dbService.DB.Order("id desc").Where("orig!='' AND orig like 'inbox/%' AND isnull(deleted_at)").Find(&m).Error
+	err = dbService.DB.Order("id desc").Where("status<2 AND orig!='' AND orig like 'inbox/%' AND isnull(deleted_at)").Find(&m).Error
 	return
 }
