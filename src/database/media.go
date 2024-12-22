@@ -40,6 +40,7 @@ func MediaSearchReadyToConvert(dbService *Service, formatsQty int) (m []*Media, 
 		JOIN media_video mv ON (mv.media_id=m.id)
 		WHERE m.orig like 'inbox/%' AND isnull(m.deleted_at)
 		GROUP BY m.id
-		HAVING mv_qty < ?`, formatsQty).Find(&m).Error
+		HAVING mv_qty < ? 
+		ORDER BY post_id DESC`, formatsQty).Find(&m).Error
 	return
 }
