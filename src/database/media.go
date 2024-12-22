@@ -32,9 +32,14 @@ func (v *Media) Save(dbService *Service) (err error) {
 }*/
 
 // MediaGetReadyToConvert returns Media list
-func MediaSearchReadyToConvert(dbService *Service) (m []*Media, err error) {
+func MediaSearchReadyToConvert(dbService *Service, formatsQty int) (m []*Media, err error) {
 	// disable telegram videos
 	//err = dbService.DB.Order("id desc").Where("orig!='' AND isnull(deleted_at)").Find(&m).Error
-	err = dbService.DB.Order("id desc").Where("status<2 AND orig!='' AND orig like 'inbox/%' AND isnull(deleted_at)").Find(&m).Error
+	// err = dbService.DB.Order("id desc").Where("status=0 AND orig!='' AND orig like 'inbox/%' AND isnull(deleted_at)").Find(&m).Error
+	err = dbService.DB.Raw(`SELECT m.*, count(mv.id) as mv_qty FROM media m 
+		JOIN media_video mv ON (mv.media_id=m.id)
+		WHERE m.orig like 'inbox/%' AND isnull(m.deleted_at)
+		GROUP BY m.id
+		HAVING mv_qty < ?`, formatsQty).Find(&m).Error
 	return
 }

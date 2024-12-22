@@ -32,15 +32,15 @@ func (v *Video) Save(dbService *Service) (err error) {
 // VideoFindJobForConverter searches the media without video and returns newly created video
 func VideoFindJobForConverter(dbService *Service, converterId int) (media *Media, video *Video, format *Format, err error) {
 
-	// get all media with status=0 (convert not done)
-	medias, err := MediaSearchReadyToConvert(dbService)
-	if err != nil || len(medias) == 0 {
-		return
-	}
-
 	// get all formats
 	formats, err := FormatGetAuto(dbService)
 	if err != nil {
+		return
+	}
+
+	// get all media with status=0 (convert not done)
+	medias, err := MediaSearchReadyToConvert(dbService, len(formats))
+	if err != nil || len(medias) == 0 {
 		return
 	}
 
