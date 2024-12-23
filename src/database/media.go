@@ -37,7 +37,7 @@ func MediaSearchReadyToConvert(dbService *Service, formatsQty int) (m []*Media, 
 	//err = dbService.DB.Order("id desc").Where("orig!='' AND isnull(deleted_at)").Find(&m).Error
 	// err = dbService.DB.Order("id desc").Where("status=0 AND orig!='' AND orig like 'inbox/%' AND isnull(deleted_at)").Find(&m).Error
 	err = dbService.DB.Raw(`SELECT m.*, count(mv.id) as mv_qty FROM media m 
-		JOIN media_video mv ON (mv.media_id=m.id)
+		LEFT JOIN media_video mv ON (mv.media_id=m.id)
 		WHERE m.orig like 'inbox/%' AND isnull(m.deleted_at)
 		GROUP BY m.id
 		HAVING mv_qty < ? 
