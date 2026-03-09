@@ -193,12 +193,26 @@ func (s *Service) VideoUpdate(w http.ResponseWriter, r *http.Request) {
 		video.Progress = 0
 		video.Save(s.dbService)
 
+		formats, err := database.FormatGetAuto(s.dbService)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		formatsQty := len(formats)
+		// check if all videos for media are done and update media status
+		ReadyFormatsQty := 0
+		s.dbService.DB.Raw("SELECT count(*) FROM media_video WHERE media_id=? AND status=5",
+			media.ID).Scan(&ReadyFormatsQty)
+		log.Printf("ready formats: %d of %d\n", ReadyFormatsQty, formatsQty)
+		if ReadyFormatsQty < formatsQty {
+			return
+		}
 		media.Status = 2
 		media.Save(s.dbService)
 
 		// TODO: update lang in post
 
-		err := database.PostAddLang(s.dbService, media.PostID, media.LangId)
+		err = database.PostAddLang(s.dbService, media.PostID, media.LangId)
 		if err != nil {
 			log.Println(err)
 			return
